@@ -1,78 +1,51 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
-import { Button } from 'react-native-elements';
-import RouteForm from '../components/RouteForm';
-import RouteList from '../components/RouteList';
-import { getRoutes } from '../services/routeService';
+import React, { useContext } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { AuthContext } from '../context/AuthContext';
 
 const HomeScreen = ({ navigation }) => {
-  const [routes, setRoutes] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isFormVisible, setIsFormVisible] = useState(false);
+  const { user, signOut } = useContext(AuthContext);
 
-  useEffect(() => {
-    loadRoutes();
-  }, []);
+  const onSignOut = () => {
+    // Reset the user state
+    setUser(null);
 
-  const loadRoutes = async () => {
-    setIsLoading(true);
-    const response = await getRoutes();
-    setIsLoading(false);
-
-    if (response.success) {
-      setRoutes(response.data);
-    } else {
-      console.log(response.error);
-      // Handle error
-    }
-  };
-
-  const toggleForm = () => {
-    setIsFormVisible(!isFormVisible);
+    // Call the signOut function from the context
+    signOut();
   };
 
   return (
-    <ScrollView style={styles.container}>
-      {isFormVisible ? (
-        <RouteForm toggleForm={toggleForm} loadRoutes={loadRoutes} />
-      ) : (
-        <>
-          <Text style={styles.title}>Route List</Text>
-          {isLoading ? (
-            <Text>Loading...</Text>
-          ) : (
-            <RouteList routes={routes} navigation={navigation} />
-          )}
-        </>
-      )}
-      <View style={styles.buttonContainer}>
-        <Button
-          title={isFormVisible ? 'Close' : 'Add Route'}
-          onPress={toggleForm}
-          buttonStyle={styles.button}
-        />
-      </View>
-    </ScrollView>
+    <View style={styles.container}>
+      <Text style={styles.text}>Welcome {user?.email}!</Text>
+      <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('RouteList')}>
+        <Text style={styles.buttonText}>View Routes</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.button} onPress={onSignOut}>
+        <Text style={styles.buttonText}>Sign Out</Text>
+      </TouchableOpacity>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingHorizontal: 20,
-    paddingTop: 20,
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 10,
-  },
-  buttonContainer: {
+    justifyContent: 'center',
     alignItems: 'center',
-    marginVertical: 20,
+  },
+  text: {
+    fontSize: 20,
+    marginBottom: 20,
   },
   button: {
-    width: 200,
+    backgroundColor: '#4CAF50',
+    borderRadius: 5,
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    marginVertical: 10,
+  },
+  buttonText: {
+    color: '#FFF',
+    textAlign: 'center',
   },
 });
 
