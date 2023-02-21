@@ -1,36 +1,53 @@
-import { BASE_URL } from "../utils/constants";
-import { handleApiError } from "../utils/errorHandling";
+import { API_BASE_URL } from '@env';
 
-export async function getRoutes(params) {
+export const getRoutes = async (accessToken) => {
   try {
-    const url = new URL(`${BASE_URL}/routes`);
-    if (params) {
-      Object.keys(params).forEach((key) =>
-        url.searchParams.append(key, params[key])
-      );
-    }
-
-    const response = await fetch(url, {
-      method: "GET",
+    const response = await fetch(`${API_BASE_URL}/routes`, {
       headers: {
-        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
       },
     });
 
-    if (response.ok) {
-      const data = await response.json();
-      return {
-        success: true,
-        data: data,
-      };
-    } else {
-      return handleApiError(response);
+    if (!response.ok) {
+      throw new Error('Failed to retrieve routes');
     }
+
+    const routes = await response.json();
+    return {
+      success: true,
+      data: routes,
+    };
   } catch (error) {
     console.error(error);
     return {
       success: false,
-      error: "An error occurred while fetching the routes.",
+      error: error.message,
     };
   }
-}
+};
+
+export const getRouteDetails = async (accessToken, routeId) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/routes/${routeId}`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to retrieve route details');
+    }
+
+    const routeDetails = await response.json();
+    return {
+      success: true,
+      data: routeDetails,
+    };
+  } catch (error) {
+    console.error(error);
+    return {
+      success: false,
+      error: error.message,
+    };
+  }
+};
