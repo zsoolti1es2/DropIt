@@ -1,25 +1,30 @@
 import React from 'react';
-import { TextInput as RNTextInput, StyleSheet } from 'react-native';
+import { View, TextInput as RNTextInput, StyleSheet } from 'react-native';
 
-const TextInput = ({ style, ...props }) => {
+const TextInput = ({ label, placeholder, secureTextEntry, onChangeText, value }) => {
   return (
-    <RNTextInput
-      style={[styles.input, style]}
-      placeholderTextColor="#8A8F9E"
-      {...props}
-    />
+    <View style={styles.container}>
+      <RNTextInput
+        style={styles.input}
+        placeholder={placeholder}
+        placeholderTextColor="#999"
+        secureTextEntry={secureTextEntry}
+        onChangeText={onChangeText}
+        value={value}
+      />
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
+  container: {
+    marginVertical: 10,
+  },
   input: {
-    backgroundColor: '#F0F0F0',
-    borderRadius: 5,
-    height: 50,
-    paddingLeft: 20,
-    marginBottom: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
     fontSize: 16,
-    color: '#161F3D',
+    paddingVertical: 5,
   },
 });
 
