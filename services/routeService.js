@@ -1,53 +1,70 @@
-import { API_BASE_URL } from '@env';
+const API_URL = 'https://myapi.com/';
 
-export const getRoutes = async (accessToken) => {
+export async function getRoutes() {
   try {
-    const response = await fetch(`${API_BASE_URL}/routes`, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to retrieve routes');
+    const response = await fetch(`${API_URL}routes`);
+    if (response.ok) {
+      const data = await response.json();
+      return { success: true, data };
+    } else {
+      throw new Error(response.statusText);
     }
-
-    const routes = await response.json();
-    return {
-      success: true,
-      data: routes,
-    };
   } catch (error) {
     console.error(error);
-    return {
-      success: false,
-      error: error.message,
-    };
+    return { success: false, error: 'Error retrieving routes' };
   }
-};
+}
 
-export const getRouteDetails = async (accessToken, routeId) => {
+export async function addRoute(route) {
   try {
-    const response = await fetch(`${API_BASE_URL}/routes/${routeId}`, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
+    const response = await fetch(`${API_URL}routes`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(route),
     });
-
-    if (!response.ok) {
-      throw new Error('Failed to retrieve route details');
+    if (response.ok) {
+      const data = await response.json();
+      return { success: true, data };
+    } else {
+      throw new Error(response.statusText);
     }
-
-    const routeDetails = await response.json();
-    return {
-      success: true,
-      data: routeDetails,
-    };
   } catch (error) {
     console.error(error);
-    return {
-      success: false,
-      error: error.message,
-    };
+    return { success: false, error: 'Error adding route' };
   }
-};
+}
+
+export async function updateRoute(route) {
+  try {
+    const response = await fetch(`${API_URL}routes/${route.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(route),
+    });
+    if (response.ok) {
+      const data = await response.json();
+      return { success: true, data };
+    } else {
+      throw new Error(response.statusText);
+    }
+  } catch (error) {
+    console.error(error);
+    return { success: false, error: 'Error updating route' };
+  }
+}
+
+export async function deleteRoute(routeId) {
+  try {
+    const response = await fetch(`${API_URL}routes/${routeId}`, {
+      method: 'DELETE',
+    });
+    if (response.ok) {
+      return { success: true };
+    } else {
+      throw new Error(response.statusText);
+    }
+  } catch (error) {
+    console.error(error);
+    return { success: false, error: 'Error deleting route' };
+  }
+}
