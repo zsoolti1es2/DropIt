@@ -1,13 +1,36 @@
-import { API_BASE_URL } from '../utils/constants';
-import { handleResponse, handleError } from '../utils/apiUtils';
+import { BASE_URL } from "../utils/constants";
+import { handleApiError } from "../utils/errorHandling";
 
-export const fetchRoutes = async (searchParams) => {
-  const queryParams = new URLSearchParams(searchParams).toString();
-  const response = await fetch(`${API_BASE_URL}/routes?${queryParams}`);
-  return handleResponse(response);
-};
+export async function getRoutes(params) {
+  try {
+    const url = new URL(`${BASE_URL}/routes`);
+    if (params) {
+      Object.keys(params).forEach((key) =>
+        url.searchParams.append(key, params[key])
+      );
+    }
 
-export const fetchRouteDetails = async (routeId) => {
-  const response = await fetch(`${API_BASE_URL}/routes/${routeId}`);
-  return handleResponse(response);
-};
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      return {
+        success: true,
+        data: data,
+      };
+    } else {
+      return handleApiError(response);
+    }
+  } catch (error) {
+    console.error(error);
+    return {
+      success: false,
+      error: "An error occurred while fetching the routes.",
+    };
+  }
+}
