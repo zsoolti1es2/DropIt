@@ -1,51 +1,46 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
-import Navigation from './Navigation';
-import { AuthContext } from './context/authContext';
-import { getToken, storeToken, removeToken } from './utils/tokenStorage';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { firebase } from './firebase/config';
+import AuthStack from './navigation/AuthStack';
+import AppStack from './navigation/AppStack';
 
-const Stack = createStackNavigator();
+const Stack = createNativeStackNavigator();
 
-const App = () => {
-  const [token, setToken] = React.useState(null);
+export default function App() {
+  const [isLoading, setIsLoading] = useState(true);
+  const [user, setUser] = useState(null);
 
-  const authContext = React.useMemo(() => ({
-    signIn: async (token) => {
-      setToken(token);
-      await storeToken(token);
-    },
-    signOut: async () => {
-      setToken(null);
-      await removeToken();
-    },
-  }), []);
+  useEffect(() => {
+    const authSubscriber = firebase.auth().onAuthStateChanged((authUser) => {
+      setUser(authUser);
+      setIsLoading(false);
+    });
 
-  React.useEffect(() => {
-    const bootstrapAsync = async () => {
-      const userToken = await getToken();
-
-      if (userToken) {
-        setToken(userToken);
-      }
-    };
-
-    bootstrapAsync();
+    return authSubscriber; // unsubscribe on unmount
   }, []);
 
-  return (
-    <AuthContext.Provider value={authContext}>
-      <NavigationContainer>
-        <Stack.Navigator headerMode="none">
-          {token ? (
-            <Stack.Screen name="App" component={Navigation} />
-          ) : (
-            <Stack.Screen name="Auth" component={AuthStack} />
-          )}
-        </Stack.Navigator>
-      </NavigationContainer>
-    </AuthContext.Provider>
-  );
-};
+  if (isLoading) {
+    return null; // or a loading indicator
+  }
 
-export default App;
+  return (
+    <NavigationContainer>
+      <Stack.Navigator>
+        {user ? (
+          <Stack.Screen
+            name="App"
+            component={AppStack}
+            options={{ headerShown: false }}
+          />
+        ) : (
+          <Stack.Screen
+            name="Auth"
+            component={AuthStack}
+            options={{ headerShown: false }}
+          />
+        )}
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
+}
