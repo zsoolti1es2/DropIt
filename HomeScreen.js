@@ -1,114 +1,79 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, FlatList } from 'react-native';
-import { useIsFocused } from '@react-navigation/native';
-import { Ionicons } from '@expo/vector-icons';
-import { getRoutes } from '../api/routes';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { Button } from 'react-native-elements';
+import RouteForm from '../components/RouteForm';
+import RouteList from '../components/RouteList';
+import { getRoutes } from '../services/routeService';
 
-export default function HomeScreen({ navigation }) {
+const HomeScreen = ({ navigation }) => {
   const [routes, setRoutes] = useState([]);
-  const isFocused = useIsFocused();
+  const [isLoading, setIsLoading] = useState(false);
+  const [isFormVisible, setIsFormVisible] = useState(false);
 
   useEffect(() => {
-    if (isFocused) {
-      getRoutes().then((data) => {
-        setRoutes(data);
-      });
-    }
-  }, [isFocused]);
+    loadRoutes();
+  }, []);
 
-  const handleRoutePress = (route) => {
-    navigation.navigate('RouteDetails', { route });
+  const loadRoutes = async () => {
+    setIsLoading(true);
+    const response = await getRoutes();
+    setIsLoading(false);
+
+    if (response.success) {
+      setRoutes(response.data);
+    } else {
+      console.log(response.error);
+      // Handle error
+    }
   };
 
-  const renderItem = ({ item }) => (
-    <TouchableOpacity style={styles.routeContainer} onPress={() => handleRoutePress(item)}>
-      <View style={styles.route}>
-        <View style={styles.routeHeader}>
-          <Text style={styles.routeTitle}>{item.title}</Text>
-          <Text style={styles.routeDate}>{new Date(item.date).toLocaleString()}</Text>
-        </View>
-        <Text style={styles.routeDescription}>{item.description}</Text>
-        <View style={styles.routeFooter}>
-          <View style={styles.routePrice}>
-            <Ionicons name="md-cash" size={16} color="#4CAF50" />
-            <Text style={styles.routePriceText}>${item.price}</Text>
-          </View>
-          <View style={styles.routeSeats}>
-            <Ionicons name="md-cart" size={16} color="#4CAF50" />
-            <Text style={styles.routeSeatsText}>{item.size}</Text>
-          </View>
-        </View>
-      </View>
-    </TouchableOpacity>
-  );
+  const toggleForm = () => {
+    setIsFormVisible(!isFormVisible);
+  };
 
   return (
-    <View style={styles.container}>
-      <FlatList
-        data={routes}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.id.toString()}
-      />
-    </View>
+    <ScrollView style={styles.container}>
+      {isFormVisible ? (
+        <RouteForm toggleForm={toggleForm} loadRoutes={loadRoutes} />
+      ) : (
+        <>
+          <Text style={styles.title}>Route List</Text>
+          {isLoading ? (
+            <Text>Loading...</Text>
+          ) : (
+            <RouteList routes={routes} navigation={navigation} />
+          )}
+        </>
+      )}
+      <View style={styles.buttonContainer}>
+        <Button
+          title={isFormVisible ? 'Close' : 'Add Route'}
+          onPress={toggleForm}
+          buttonStyle={styles.button}
+        />
+      </View>
+    </ScrollView>
   );
-}
+};
 
-const styles = {
+const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'stretch',
-    justifyContent: 'center',
-    padding: 16,
-    backgroundColor: '#F5FCFF',
+    paddingHorizontal: 20,
+    paddingTop: 20,
   },
-  routeContainer: {
-    marginBottom: 16,
-  },
-  route: {
-    backgroundColor: '#FFF',
-    borderRadius: 4,
-    borderWidth: 1,
-    borderColor: '#DDD',
-    padding: 16,
-  },
-  routeHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  routeTitle: {
+  title: {
+    fontSize: 18,
     fontWeight: 'bold',
-    fontSize: 16,
-    marginRight: 8,
+    marginBottom: 10,
   },
-  routeDate: {
-    color: '#999',
-    fontSize: 14,
-  },
-  routeDescription: {
-    fontSize: 14,
-    marginBottom: 8,
-  },
-  routeFooter: {
-    flexDirection: 'row',
+  buttonContainer: {
     alignItems: 'center',
-    justifyContent: 'space-between',
+    marginVertical: 20,
   },
-  routePrice: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  button: {
+    width: 200,
   },
-  routePriceText: {
-    marginLeft: 4,
-    fontSize: 14,
-    color: '#4CAF50',
-  },
-  routeSeats: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  routeSeatsText: {
-    marginLeft: 4,
-    fontSize: 14,
-  },
-};
+});
+
+export default HomeScreen;
