@@ -2,39 +2,51 @@ import { AsyncStorage } from 'react-native';
 import { API_URL } from '../utils/constants';
 import { postData } from '../utils/apiUtils';
 
-export const register = async (email, password, fullName) => {
+export const login = async (email, password) => {
   try {
-    const response = await postData(`${API_URL}/users/register`, { email, password, fullName });
-    const data = await response.json();
+    const response = await fetch(`${API_URL}/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ email, password })
+    });
 
+    const data = await response.json();
     if (response.ok) {
-      const { token } = data;
-      await AsyncStorage.setItem('token', token);
-      return true;
+      // login successful
+      return { success: true };
     } else {
-      const { message } = data;
-      throw new Error(message);
+      // login failed
+      return { success: false, message: data.message };
     }
   } catch (error) {
-    throw error;
+    // network or server error
+    return { success: false, message: 'Network error' };
   }
 };
 
-export const login = async (email, password) => {
+export const register = async (email, password) => {
   try {
-    const response = await postData(`${API_URL}/users/login`, { email, password });
-    const data = await response.json();
+    const response = await fetch(`${API_URL}/register`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ email, password })
+    });
 
+    const data = await response.json();
     if (response.ok) {
-      const { token } = data;
-      await AsyncStorage.setItem('token', token);
-      return true;
+      // registration successful
+      return { success: true };
     } else {
-      const { message } = data;
-      throw new Error(message);
+      // registration failed
+      return { success: false, message: data.message };
     }
   } catch (error) {
-    throw error;
+    // network or server error
+    return { success: false, message: 'Network error' };
   }
 };
 
