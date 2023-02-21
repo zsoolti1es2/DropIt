@@ -1,44 +1,49 @@
-const API_URL = 'http://localhost:5000/api';
+import { API_URL } from '@env';
 
-async function login(username, password) {
-  const response = await fetch(`${API_URL}/auth/login`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      username,
-      password,
-    }),
-  });
-
-  if (!response.ok) {
-    throw new Error('Failed to login');
-  }
-
-  const data = await response.json();
-  return data;
-}
-
-async function register(username, password, email) {
+const register = async (username, password) => {
   const response = await fetch(`${API_URL}/auth/register`, {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json',
+      'Content-Type': 'application/json'
     },
     body: JSON.stringify({
       username,
-      password,
-      email,
-    }),
+      password
+    })
   });
 
+  const data = await response.json();
+
   if (!response.ok) {
-    throw new Error('Failed to register');
+    const error = new Error(data.message);
+    error.status = response.status;
+    throw error;
   }
 
-  const data = await response.json();
   return data;
-}
+};
 
-export { login, register };
+const login = async (username, password) => {
+  const response = await fetch(`${API_URL}/auth/login`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      username,
+      password
+    })
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    const error = new Error(data.message);
+    error.status = response.status;
+    throw error;
+  }
+
+  return data;
+};
+
+export { register, login };
